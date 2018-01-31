@@ -69,8 +69,8 @@ public class RocketMqConsumer {
 
         // 一个应用创建一个Consumer，由应用来维护此对象，可以设置为全局对象或者单例<br>
         // 注意：ConsumerGroupName需要由应用来保证唯一
-        defaultMQPushConsumer.setNamesrvAddr(rocketMqConf.getNamesrvAddr());
         defaultMQPushConsumer = new DefaultMQPushConsumer(rocketMqConf.getConsumerGroup());
+        defaultMQPushConsumer.setNamesrvAddr(rocketMqConf.getNamesrvAddr());
         defaultMQPushConsumer.setInstanceName(rocketMqConf.getConsumerInstanceName());
 
         // 订阅指定MyTopic下tags等于MyTag

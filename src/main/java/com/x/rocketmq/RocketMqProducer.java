@@ -24,8 +24,8 @@ public class RocketMqProducer {
     }
 
     private void init() throws Exception {
-        defaultMQProducer.setNamesrvAddr(this.rocketMqConf.getNamesrvAddr());
         defaultMQProducer = new DefaultMQProducer(this.rocketMqConf.getProducerGroup());
+        defaultMQProducer.setNamesrvAddr(this.rocketMqConf.getNamesrvAddr());
         defaultMQProducer.setInstanceName(this.rocketMqConf.getProducerInstanceName());
         defaultMQProducer.start();
     }
@@ -54,7 +54,7 @@ public class RocketMqProducer {
 
     public boolean produceMessage(String topic, String tags, Object body) throws Exception {
         String json = JSON.toJSONString(body);
-        return produceMessage(topic, tags, body);
+        return produceMessage(topic, tags, json);
     }
 
     public void destroy() {
