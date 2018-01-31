@@ -1,8 +1,7 @@
 package com.x.rocketmq;
 
 import com.alibaba.fastjson.JSON;
-import com.x.rocketmq.properties.ProducerProperties;
-import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
@@ -12,7 +11,7 @@ import org.apache.log4j.LogManager;
 
 public class RocketMqProducer {
     private static final Logger logger = LogManager.getLogger(RocketMqProducer.class);
-    private ProducerProperties producerProperties;
+    private RocketMqConf rocketMqConf;
 
     private DefaultMQProducer defaultMQProducer;
 
@@ -20,16 +19,15 @@ public class RocketMqProducer {
 
     }
 
-    private void init() throws Exception {
-        defaultMQProducer = new DefaultMQProducer(producerProperties.getProducerGroup());
-        defaultMQProducer.setNamesrvAddr(producerProperties.getNamesrvAddr());
-        defaultMQProducer.setInstanceName(producerProperties.getInstanceName());
-        defaultMQProducer.start();
+    public void setRocketMqConf(RocketMqConf rocketMqConf) {
+        this.rocketMqConf = rocketMqConf;
     }
 
-    public void setProducerProperties(ProducerProperties producerProperties) throws Exception {
-        this.producerProperties = producerProperties;
-        init();
+    private void init() throws Exception {
+        defaultMQProducer.setNamesrvAddr(this.rocketMqConf.getNamesrvAddr());
+        defaultMQProducer = new DefaultMQProducer(this.rocketMqConf.getProducerGroup());
+        defaultMQProducer.setInstanceName(this.rocketMqConf.getProducerInstanceName());
+        defaultMQProducer.start();
     }
 
     /**
@@ -39,13 +37,18 @@ public class RocketMqProducer {
      * @return
      */
     public boolean produceMessage(String topic, String tags, String body) throws Exception {
-        Message msg = new Message(topic, tags, body.getBytes(RocketMqConstant.UTF8));
+        Message msg;
+        if (StringUtils.isEmpty(tags)) {
+            msg = new Message(topic, body.getBytes(RocketMqConf.UTF8));
+        } else {
+            msg = new Message(topic, tags, body.getBytes(RocketMqConf.UTF8));
+        }
         SendResult sendResult = defaultMQProducer.send(msg);
         if (SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
-            return true;
+            return Boolean.TRUE;
         } else {
-            logger.error(RocketMqConstant.PRODUCE_EXCEPTION + sendResult.toString());
-            return false;
+            logger.error(RocketMqConf.PRODUCE_EXCEPTION + sendResult.toString());
+            return Boolean.FALSE;
         }
     }
 

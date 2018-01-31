@@ -1,7 +1,8 @@
 package com.x.rocketmq;
 
 import com.alibaba.fastjson.JSON;
-import com.x.rocketmq.properties.ConsumerProperties;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -9,8 +10,6 @@ import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -27,32 +26,57 @@ import java.util.Map;
  */
 public class RocketMqConsumer {
     private static final Logger logger = LogManager.getLogger(RocketMqConsumer.class);
-    private ConsumerProperties consumerProperties;
-    //    private String topAndTagsString;
-    private Map<String, String> topicAndTags = new HashMap<String, String>();
+    private RocketMqConf rocketMqConf;
+    private Map<String, String> consumerTopicAndTags = new HashMap<String, String>();//    private String topAndTagsString;
     private Object service;
     private String methodName;
     private String paramType;
+    private Method method;
+    private Class paramClass;
 
     private DefaultMQPushConsumer defaultMQPushConsumer;
 
-    public void init() throws Exception {
+    public void setRocketMqConf(RocketMqConf rocketMqConf) {
+        this.rocketMqConf = rocketMqConf;
+    }
 
+    public void setConsumerTopicAndTags(String consumerTopicAndTags) {
+        String[] consumerTopicAndTagsArray = consumerTopicAndTags.split(",");
+        for (String topicAndTags : consumerTopicAndTagsArray) {
+            String[] topicTag = topicAndTags.split(":");
+            this.consumerTopicAndTags.put(topicTag[0], topicTag[1]);
+        }
+//        this.topAndTagsString = topAndTagsString;
+    }
+
+    public void setService(Object service) {
+        this.service = service;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public void setParamType(String paramType) {
+        this.paramType = paramType;
+    }
+
+    public void init() throws Exception {
         // 参数信息
         logger.info("DefaultMQPushConsumer initialize!");
-        logger.info(consumerProperties.getConsumerGroup());
-        logger.info(consumerProperties.getNamesrvAddr());
+        logger.info(rocketMqConf.getConsumerGroup());
+        logger.info(rocketMqConf.getNamesrvAddr());
 
         // 一个应用创建一个Consumer，由应用来维护此对象，可以设置为全局对象或者单例<br>
         // 注意：ConsumerGroupName需要由应用来保证唯一
-        defaultMQPushConsumer = new DefaultMQPushConsumer(consumerProperties.getConsumerGroup());
-        defaultMQPushConsumer.setNamesrvAddr(consumerProperties.getNamesrvAddr());
-        defaultMQPushConsumer.setInstanceName(consumerProperties.getInstanceName());
+        defaultMQPushConsumer.setNamesrvAddr(rocketMqConf.getNamesrvAddr());
+        defaultMQPushConsumer = new DefaultMQPushConsumer(rocketMqConf.getConsumerGroup());
+        defaultMQPushConsumer.setInstanceName(rocketMqConf.getConsumerInstanceName());
 
         // 订阅指定MyTopic下tags等于MyTag
 
 //        defaultMQPushConsumer.subscribe(topicName, tagName);
-        defaultMQPushConsumer.setSubscription(consumerProperties.getTopicAndTags());
+        defaultMQPushConsumer.setSubscription(consumerTopicAndTags);
 
         // 设置Consumer第一次启动是从队列头部开始消费还是队列尾部开始消费<br>
         // 如果非第一次启动，那么按照上次消费的位置继续消费
@@ -67,11 +91,11 @@ public class RocketMqConsumer {
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
                 MessageExt msg = msgs.get(0);
                 try {
-                    String body = new String(msg.getBody(), RocketMqConstant.UTF8);
+                    String body = new String(msg.getBody(), RocketMqConf.UTF8);
                     execute(body);
                     return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
                 } catch (Exception e) {
-                    logger.error(RocketMqConstant.CONSUME_EXCEPTION + msg.toString(), e);
+                    logger.error(RocketMqConf.CONSUME_EXCEPTION + msg.toString(), e);
 //                    throw new RuntimeException(RocketMqConstant.CONSUME_EXCEPTION, e);
                     return ConsumeConcurrentlyStatus.RECONSUME_LATER;
                 }
@@ -84,11 +108,6 @@ public class RocketMqConsumer {
         logger.info("DefaultMQPushConsumer start success!");
     }
 
-    public void setConsumerProperties(ConsumerProperties consumerProperties) throws Exception {
-        this.consumerProperties = consumerProperties;
-        init();
-    }
-
     /**
      * Spring bean destroy-method
      */
@@ -97,12 +116,12 @@ public class RocketMqConsumer {
     }
 
     private void execute(String json) throws Exception {
-        String paramType = consumerProperties.getParamType();
-        Class clazz = Class.forName(paramType);
-        Object param = JSON.parseObject(json, clazz);
-        Object service = consumerProperties.getService();
-        String methodName = consumerProperties.getMethodName();
-        Method method = service.getClass().getMethod(methodName, clazz);
+        if (method == null) {
+            paramClass = Class.forName(paramType);
+            method = service.getClass().getMethod(methodName, paramClass);
+        }
+        Object param = JSON.parseObject(json, paramClass);
         method.invoke(service, param);
     }
+
 }
