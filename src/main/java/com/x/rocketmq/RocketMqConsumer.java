@@ -44,7 +44,9 @@ public class RocketMqConsumer {
         String[] consumerTopicAndTagsArray = consumerTopicAndTags.split(",");
         for (String topicAndTags : consumerTopicAndTagsArray) {
             String[] topicTag = topicAndTags.split(":");
-            this.consumerTopicAndTags.put(topicTag[0], topicTag[1]);
+            if (topicTag.length > 1) {
+                this.consumerTopicAndTags.put(topicTag[0], topicTag[1]);
+            }
         }
 //        this.topAndTagsString = topAndTagsString;
     }

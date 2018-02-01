@@ -1,7 +1,6 @@
 package com.x.rocketmq;
 
 import com.alibaba.fastjson.JSON;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
@@ -38,7 +37,7 @@ public class RocketMqProducer {
      */
     public boolean produceMessage(String topic, String tags, String body) throws Exception {
         Message msg;
-        if (StringUtils.isEmpty(tags)) {
+        if (tags == null || tags.length() == 0) {
             msg = new Message(topic, body.getBytes(RocketMqConf.UTF8));
         } else {
             msg = new Message(topic, tags, body.getBytes(RocketMqConf.UTF8));
