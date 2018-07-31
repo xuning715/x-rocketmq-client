@@ -28,8 +28,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
 import org.apache.rocketmq.client.ClientConfig;
 import org.apache.rocketmq.client.consumer.PullCallback;
 import org.apache.rocketmq.client.consumer.PullResult;
@@ -153,10 +151,12 @@ import org.apache.rocketmq.remoting.netty.ResponseFuture;
 import org.apache.rocketmq.remoting.protocol.LanguageCode;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MQClientAPIImpl {
 
-    public static Logger log = LogManager.getLogger(MQClientAPIImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(MQClientAPIImpl.class);
 
     public static boolean sendSmartMsg =
         Boolean.parseBoolean(System.getProperty("org.apache.rocketmq.client.sendSmartMsg", "true"));
@@ -206,14 +206,14 @@ public class MQClientAPIImpl {
             String addrs = this.topAddressing.fetchNSAddr();
             if (addrs != null) {
                 if (!addrs.equals(this.nameSrvAddr)) {
-                    log.info("name server address changed, old=" + this.nameSrvAddr + ", new=" + addrs);
+                    logger.info("name server address changed, old=" + this.nameSrvAddr + ", new=" + addrs);
                     this.updateNameServerAddressList(addrs);
                     this.nameSrvAddr = addrs;
                     return nameSrvAddr;
                 }
             }
         } catch (Exception e) {
-            log.error("fetchNameServerAddr Exception", e);
+            logger.error("fetchNameServerAddr Exception", e);
         }
         return nameSrvAddr;
     }
@@ -452,7 +452,7 @@ public class MQClientAPIImpl {
                 retryBrokerName = mqChosen.getBrokerName();
             }
             String addr = instance.findBrokerAddressInPublish(retryBrokerName);
-            log.info("async send msg by retry {} times. topic={}, brokerAddr={}, brokerName={}" + tmp + msg.getTopic() + addr +
+            logger.info("async send msg by retry {} times. topic={}, brokerAddr={}, brokerName={}" + tmp + msg.getTopic() + addr +
                 retryBrokerName);
             try {
                 request.setOpaque(RemotingCommand.createNewRequestId());
@@ -1212,7 +1212,7 @@ public class MQClientAPIImpl {
         switch (response.getCode()) {
             case ResponseCode.TOPIC_NOT_EXIST: {
                 if (allowTopicNotExist && !topic.equals(MixAll.DEFAULT_TOPIC)) {
-                    log.warn("get Topic [{}] RouteInfoFromNameServer is not exist value" + topic);
+                    logger.warn("get Topic [{}] RouteInfoFromNameServer is not exist value" + topic);
                 }
 
                 break;

@@ -19,15 +19,15 @@ package org.apache.rocketmq.client.stat;
 
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.common.protocol.body.ConsumeStatus;
 import org.apache.rocketmq.common.stats.StatsItemSet;
 import org.apache.rocketmq.common.stats.StatsSnapshot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConsumerStatsManager {
-    private static Logger log = LogManager.getLogger(LoggerName.CLIENT_LOGGER_NAME);
+    private static final Logger logger = LoggerFactory.getLogger(LoggerName.CLIENT_LOGGER_NAME);
     private static final String TOPIC_AND_GROUP_CONSUME_OK_TPS = "CONSUME_OK_TPS";
     private static final String TOPIC_AND_GROUP_CONSUME_FAILED_TPS = "CONSUME_FAILED_TPS";
     private static final String TOPIC_AND_GROUP_CONSUME_RT = "CONSUME_RT";
@@ -42,17 +42,17 @@ public class ConsumerStatsManager {
 
     public ConsumerStatsManager(final ScheduledExecutorService scheduledExecutorService) {
         this.topicAndGroupConsumeOKTPS =
-            new StatsItemSet(TOPIC_AND_GROUP_CONSUME_OK_TPS, scheduledExecutorService, log);
+            new StatsItemSet(TOPIC_AND_GROUP_CONSUME_OK_TPS, scheduledExecutorService, logger);
 
         this.topicAndGroupConsumeRT =
-            new StatsItemSet(TOPIC_AND_GROUP_CONSUME_RT, scheduledExecutorService, log);
+            new StatsItemSet(TOPIC_AND_GROUP_CONSUME_RT, scheduledExecutorService, logger);
 
         this.topicAndGroupConsumeFailedTPS =
-            new StatsItemSet(TOPIC_AND_GROUP_CONSUME_FAILED_TPS, scheduledExecutorService, log);
+            new StatsItemSet(TOPIC_AND_GROUP_CONSUME_FAILED_TPS, scheduledExecutorService, logger);
 
-        this.topicAndGroupPullTPS = new StatsItemSet(TOPIC_AND_GROUP_PULL_TPS, scheduledExecutorService, log);
+        this.topicAndGroupPullTPS = new StatsItemSet(TOPIC_AND_GROUP_PULL_TPS, scheduledExecutorService, logger);
 
-        this.topicAndGroupPullRT = new StatsItemSet(TOPIC_AND_GROUP_PULL_RT, scheduledExecutorService, log);
+        this.topicAndGroupPullRT = new StatsItemSet(TOPIC_AND_GROUP_PULL_RT, scheduledExecutorService, logger);
     }
 
     public void start() {

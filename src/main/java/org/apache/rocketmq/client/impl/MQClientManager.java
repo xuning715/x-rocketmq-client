@@ -20,15 +20,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.ClientConfig;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.remoting.RPCHook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MQClientManager {
-    private static Logger log = LogManager.getLogger(MQClientManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(MQClientManager.class);
     private static MQClientManager instance = new MQClientManager();
     private AtomicInteger factoryIndexGenerator = new AtomicInteger();
     private ConcurrentMap<String/* clientId */, MQClientInstance> factoryTable =
@@ -56,9 +56,9 @@ public class MQClientManager {
             MQClientInstance prev = this.factoryTable.putIfAbsent(clientId, instance);
             if (prev != null) {
                 instance = prev;
-                log.warn("Returned Previous MQClientInstance for clientId:[{}]"+ clientId);
+                logger.warn("Returned Previous MQClientInstance for clientId:[{}]"+ clientId);
             } else {
-                log.info("Created new MQClientInstance for clientId:[{}]"+ clientId);
+                logger.info("Created new MQClientInstance for clientId:[{}]"+ clientId);
             }
         }
 

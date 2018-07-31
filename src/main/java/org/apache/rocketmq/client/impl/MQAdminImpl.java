@@ -26,8 +26,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.QueryResult;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -54,10 +52,12 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.remoting.netty.ResponseFuture;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MQAdminImpl {
 
-    private static Logger log = LogManager.getLogger(MQAdminImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(MQAdminImpl.class);
     private final MQClientInstance mQClientFactory;
     private long timeoutMillis = 6000;
 
@@ -319,7 +319,7 @@ public class MQAdminImpl {
                                                             (QueryMessageResponseHeader) response
                                                                 .decodeCommandCustomHeader(QueryMessageResponseHeader.class);
                                                     } catch (RemotingCommandException e) {
-                                                        log.error("decodeCommandCustomHeader exception", e);
+                                                        logger.error("decodeCommandCustomHeader exception", e);
                                                         return;
                                                     }
 
@@ -336,11 +336,11 @@ public class MQAdminImpl {
                                                     break;
                                                 }
                                                 default:
-                                                    log.warn("getResponseCommand failed, {} {}"+ response.getCode()+ response.getRemark());
+                                                    logger.warn("getResponseCommand failed, {} {}"+ response.getCode()+ response.getRemark());
                                                     break;
                                             }
                                         } else {
-                                            log.warn("getResponseCommand return null");
+                                            logger.warn("getResponseCommand return null");
                                         }
                                     } finally {
                                         countDownLatch.countDown();
@@ -348,14 +348,14 @@ public class MQAdminImpl {
                                 }
                             }, isUniqKey);
                     } catch (Exception e) {
-                        log.warn("queryMessage exception", e);
+                        logger.warn("queryMessage exception", e);
                     }
 
                 }
 
                 boolean ok = countDownLatch.await(timeoutMillis * 4, TimeUnit.MILLISECONDS);
                 if (!ok) {
-                    log.warn("queryMessage, maybe some broker failed");
+                    logger.warn("queryMessage, maybe some broker failed");
                 }
 
                 long indexLastUpdateTimestamp = 0;
@@ -382,7 +382,7 @@ public class MQAdminImpl {
                                     messageList.add(msgExt);
                                 }
                             } else {
-                                log.warn("queryMessage by uniqKey, find message key not matched, maybe hash duplicate {}"+ msgExt.toString());
+                                logger.warn("queryMessage by uniqKey, find message key not matched, maybe hash duplicate {}"+ msgExt.toString());
                             }
                         } else {
                             String keys = msgExt.getKeys();
@@ -401,7 +401,7 @@ public class MQAdminImpl {
                                 if (matched) {
                                     messageList.add(msgExt);
                                 } else {
-                                    log.warn("queryMessage, find message key not matched, maybe hash duplicate {}"+ msgExt.toString());
+                                    logger.warn("queryMessage, find message key not matched, maybe hash duplicate {}"+ msgExt.toString());
                                 }
                             }
                         }

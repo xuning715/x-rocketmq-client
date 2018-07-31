@@ -24,19 +24,19 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.common.ThreadFactoryImpl;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Schedule service for pull consumer
  */
 public class MQPullConsumerScheduleService {
-    public static Logger log = LogManager.getLogger(MQPullConsumerScheduleService.class);
+    private static final Logger logger = LoggerFactory.getLogger(MQPullConsumerScheduleService.class);
     private final MessageQueueListener messageQueueListener = new MessageQueueListenerImpl();
     private final ConcurrentMap<MessageQueue, PullTaskImpl> taskTable =
         new ConcurrentHashMap<MessageQueue, PullTaskImpl>();
@@ -84,7 +84,7 @@ public class MQPullConsumerScheduleService {
 
         this.defaultMQPullConsumer.start();
 
-        log.info("MQPullConsumerScheduleService start OK, {} {}"+
+        logger.info("MQPullConsumerScheduleService start OK, {} {}"+
             this.defaultMQPullConsumer.getConsumerGroup()+ this.callbackTable);
     }
 
@@ -174,20 +174,20 @@ public class MQPullConsumerScheduleService {
                         pullTaskCallback.doPullTask(this.messageQueue, context);
                     } catch (Throwable e) {
                         context.setPullNextDelayTimeMillis(1000);
-                        log.error("doPullTask Exception", e);
+                        logger.error("doPullTask Exception", e);
                     }
 
                     if (!this.isCancelled()) {
                         MQPullConsumerScheduleService.this.scheduledThreadPoolExecutor.schedule(this,
                             context.getPullNextDelayTimeMillis(), TimeUnit.MILLISECONDS);
                     } else {
-                        log.warn("The Pull Task is cancelled after doPullTask, {}"+ messageQueue);
+                        logger.warn("The Pull Task is cancelled after doPullTask, {}"+ messageQueue);
                     }
                 } else {
-                    log.warn("Pull Task Callback not exist , {}"+ topic);
+                    logger.warn("Pull Task Callback not exist , {}"+ topic);
                 }
             } else {
-                log.warn("The Pull Task is cancelled, {}"+ messageQueue);
+                logger.warn("The Pull Task is cancelled, {}"+ messageQueue);
             }
         }
 

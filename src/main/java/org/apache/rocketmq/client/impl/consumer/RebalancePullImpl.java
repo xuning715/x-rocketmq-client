@@ -46,7 +46,7 @@ public class RebalancePullImpl extends RebalanceImpl {
             try {
                 messageQueueListener.messageQueueChanged(topic, mqAll, mqDivided);
             } catch (Throwable e) {
-                log.error("messageQueueChanged exception", e);
+                logger.error("messageQueueChanged exception", e);
             }
         }
     }

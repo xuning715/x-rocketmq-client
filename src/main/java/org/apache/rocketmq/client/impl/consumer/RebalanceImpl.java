@@ -28,8 +28,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.consumer.AllocateMessageQueueStrategy;
 import org.apache.rocketmq.client.impl.FindBrokerResult;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;
@@ -41,12 +39,14 @@ import org.apache.rocketmq.common.protocol.body.UnlockBatchRequestBody;
 import org.apache.rocketmq.common.protocol.heartbeat.ConsumeType;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.apache.rocketmq.common.protocol.heartbeat.SubscriptionData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for rebalance algorithm
  */
 public abstract class RebalanceImpl {
-    protected static Logger log = LogManager.getLogger(RebalanceImpl.class);
+    protected Logger logger = LoggerFactory.getLogger(getClass());
     protected final ConcurrentMap<MessageQueue, ProcessQueue> processQueueTable = new ConcurrentHashMap<MessageQueue, ProcessQueue>(64);
     protected final ConcurrentMap<String/* topic */, Set<MessageQueue>> topicSubscribeInfoTable =
         new ConcurrentHashMap<String, Set<MessageQueue>>();
@@ -76,12 +76,12 @@ public abstract class RebalanceImpl {
 
             try {
                 this.mQClientFactory.getMQClientAPIImpl().unlockBatchMQ(findBrokerResult.getBrokerAddr(), requestBody, 1000, oneway);
-                log.warn("unlock messageQueue. group:{}, clientId:{}, mq:{}"+
+                logger.warn("unlock messageQueue. group:{}, clientId:{}, mq:{}"+
                     this.consumerGroup+
                     this.mQClientFactory.getClientId()+
                     mq);
             } catch (Exception e) {
-                log.error("unlockBatchMQ exception, " + mq, e);
+                logger.error("unlockBatchMQ exception, " + mq, e);
             }
         }
     }
@@ -110,11 +110,11 @@ public abstract class RebalanceImpl {
                         ProcessQueue processQueue = this.processQueueTable.get(mq);
                         if (processQueue != null) {
                             processQueue.setLocked(false);
-                            log.info("the message queue unlock OK, Group: {} {}"+ this.consumerGroup+ mq);
+                            logger.info("the message queue unlock OK, Group: {} {}"+ this.consumerGroup+ mq);
                         }
                     }
                 } catch (Exception e) {
-                    log.error("unlockBatchMQ exception, " + mqs, e);
+                    logger.error("unlockBatchMQ exception, " + mqs, e);
                 }
             }
         }
@@ -155,13 +155,13 @@ public abstract class RebalanceImpl {
                 }
 
                 boolean lockOK = lockedMq.contains(mq);
-                log.info("the message queue lock {}, {} {}"+
+                logger.info("the message queue lock {}, {} {}"+
                         (lockOK ? "OK" : "Failed")+
                         this.consumerGroup+
                         mq);
                 return lockOK;
             } catch (Exception e) {
-                log.error("lockBatchMQ exception, " + mq, e);
+                logger.error("lockBatchMQ exception, " + mq, e);
             }
         }
 
@@ -177,8 +177,9 @@ public abstract class RebalanceImpl {
             final String brokerName = entry.getKey();
             final Set<MessageQueue> mqs = entry.getValue();
 
-            if (mqs.isEmpty())
+            if (mqs.isEmpty()) {
                 continue;
+            }
 
             FindBrokerResult findBrokerResult = this.mQClientFactory.findBrokerAddressInSubscribe(brokerName, MixAll.MASTER_ID, true);
             if (findBrokerResult != null) {
@@ -195,7 +196,7 @@ public abstract class RebalanceImpl {
                         ProcessQueue processQueue = this.processQueueTable.get(mq);
                         if (processQueue != null) {
                             if (!processQueue.isLocked()) {
-                                log.info("the message queue locked OK, Group: {} {}"+ this.consumerGroup+ mq);
+                                logger.info("the message queue locked OK, Group: {} {}"+ this.consumerGroup+ mq);
                             }
 
                             processQueue.setLocked(true);
@@ -207,12 +208,12 @@ public abstract class RebalanceImpl {
                             ProcessQueue processQueue = this.processQueueTable.get(mq);
                             if (processQueue != null) {
                                 processQueue.setLocked(false);
-                                log.warn("the message queue locked Failed, Group: {} {}"+ this.consumerGroup+ mq);
+                                logger.warn("the message queue locked Failed, Group: {} {}"+ this.consumerGroup+ mq);
                             }
                         }
                     }
                 } catch (Exception e) {
-                    log.error("lockBatchMQ exception, " + mqs, e);
+                    logger.error("lockBatchMQ exception, " + mqs, e);
                 }
             }
         }
@@ -227,7 +228,7 @@ public abstract class RebalanceImpl {
                     this.rebalanceByTopic(topic, isOrder);
                 } catch (Throwable e) {
                     if (!topic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
-                        log.warn("rebalanceByTopic Exception", e);
+                        logger.warn("rebalanceByTopic Exception", e);
                     }
                 }
             }
@@ -248,14 +249,14 @@ public abstract class RebalanceImpl {
                     boolean changed = this.updateProcessQueueTableInRebalance(topic, mqSet, isOrder);
                     if (changed) {
                         this.messageQueueChanged(topic, mqSet, mqSet);
-                        log.info("messageQueueChanged {} {} {} {}"+
+                        logger.info("messageQueueChanged {} {} {} {}"+
                             consumerGroup+
                             topic+
                             mqSet+
                             mqSet);
                     }
                 } else {
-                    log.warn("doRebalance, {}, but the topic[{}] not exist."+ consumerGroup+ topic);
+                    logger.warn("doRebalance, {}, but the topic[{}] not exist."+ consumerGroup+ topic);
                 }
                 break;
             }
@@ -264,12 +265,12 @@ public abstract class RebalanceImpl {
                 List<String> cidAll = this.mQClientFactory.findConsumerIdList(topic, consumerGroup);
                 if (null == mqSet) {
                     if (!topic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
-                        log.warn("doRebalance, {}, but the topic[{}] not exist."+ consumerGroup+ topic);
+                        logger.warn("doRebalance, {}, but the topic[{}] not exist."+ consumerGroup+ topic);
                     }
                 }
 
                 if (null == cidAll) {
-                    log.warn("doRebalance, {} {}, get consumer id list failed"+ consumerGroup+ topic);
+                    logger.warn("doRebalance, {} {}, get consumer id list failed"+ consumerGroup+ topic);
                 }
 
                 if (mqSet != null && cidAll != null) {
@@ -289,7 +290,7 @@ public abstract class RebalanceImpl {
                             mqAll,
                             cidAll);
                     } catch (Throwable e) {
-                        log.error("AllocateMessageQueueStrategy.allocate Exception. allocateMessageQueueStrategyName={}"+ strategy.getName(),
+                        logger.error("AllocateMessageQueueStrategy.allocate Exception. allocateMessageQueueStrategyName={}"+ strategy.getName(),
                             e);
                         return;
                     }
@@ -301,7 +302,7 @@ public abstract class RebalanceImpl {
 
                     boolean changed = this.updateProcessQueueTableInRebalance(topic, allocateResultSet, isOrder);
                     if (changed) {
-                        log.info(
+                        logger.info(
                             "rebalanced result changed. allocateMessageQueueStrategyName={}, group={}, topic={}, clientId={}, mqAllSize={}, cidAllSize={}, rebalanceResultSize={}, rebalanceResultSet={}"+
                             strategy.getName()+ consumerGroup+ topic+ this.mQClientFactory.getClientId()+ mqSet.size()+ cidAll.size()+
                             allocateResultSet.size()+ allocateResultSet);
@@ -324,7 +325,7 @@ public abstract class RebalanceImpl {
                 ProcessQueue pq = this.processQueueTable.remove(mq);
                 if (pq != null) {
                     pq.setDropped(true);
-                    log.info("doRebalance, {}, truncateMessageQueueNotMyTopic remove unnecessary mq, {}"+ consumerGroup+ mq);
+                    logger.info("doRebalance, {}, truncateMessageQueueNotMyTopic remove unnecessary mq, {}"+ consumerGroup+ mq);
                 }
             }
         }
@@ -346,7 +347,7 @@ public abstract class RebalanceImpl {
                     if (this.removeUnnecessaryMessageQueue(mq, pq)) {
                         it.remove();
                         changed = true;
-                        log.info("doRebalance, {}, remove unnecessary mq, {}"+ consumerGroup+ mq);
+                        logger.info("doRebalance, {}, remove unnecessary mq, {}"+ consumerGroup+ mq);
                     }
                 } else if (pq.isPullExpired()) {
                     switch (this.consumeType()) {
@@ -357,7 +358,7 @@ public abstract class RebalanceImpl {
                             if (this.removeUnnecessaryMessageQueue(mq, pq)) {
                                 it.remove();
                                 changed = true;
-                                log.error("[BUG]doRebalance, {}, remove unnecessary mq, {}, because pull is pause, so try to fixed it"+
+                                logger.error("[BUG]doRebalance, {}, remove unnecessary mq, {}, because pull is pause, so try to fixed it"+
                                     consumerGroup+ mq);
                             }
                             break;
@@ -372,7 +373,7 @@ public abstract class RebalanceImpl {
         for (MessageQueue mq : mqSet) {
             if (!this.processQueueTable.containsKey(mq)) {
                 if (isOrder && !this.lock(mq)) {
-                    log.warn("doRebalance, {}, add a new mq failed, {}, because lock failed"+ consumerGroup+ mq);
+                    logger.warn("doRebalance, {}, add a new mq failed, {}, because lock failed"+ consumerGroup+ mq);
                     continue;
                 }
 
@@ -382,9 +383,9 @@ public abstract class RebalanceImpl {
                 if (nextOffset >= 0) {
                     ProcessQueue pre = this.processQueueTable.putIfAbsent(mq, pq);
                     if (pre != null) {
-                        log.info("doRebalance, {}, mq already exists, {}"+ consumerGroup+ mq);
+                        logger.info("doRebalance, {}, mq already exists, {}"+ consumerGroup+ mq);
                     } else {
-                        log.info("doRebalance, {}, add a new mq, {}"+ consumerGroup+ mq);
+                        logger.info("doRebalance, {}, add a new mq, {}"+ consumerGroup+ mq);
                         PullRequest pullRequest = new PullRequest();
                         pullRequest.setConsumerGroup(consumerGroup);
                         pullRequest.setNextOffset(nextOffset);
@@ -394,7 +395,7 @@ public abstract class RebalanceImpl {
                         changed = true;
                     }
                 } else {
-                    log.warn("doRebalance, {}, add new mq failed, {}"+ consumerGroup+ mq);
+                    logger.warn("doRebalance, {}, add new mq failed, {}"+ consumerGroup+ mq);
                 }
             }
         }
@@ -423,7 +424,7 @@ public abstract class RebalanceImpl {
             boolean droped = prev.isDropped();
             prev.setDropped(true);
             this.removeUnnecessaryMessageQueue(mq, prev);
-            log.info("Fix Offset, {}, remove unnecessary mq, {} Droped: {}"+ consumerGroup+ mq+ droped);
+            logger.info("Fix Offset, {}, remove unnecessary mq, {} Droped: {}"+ consumerGroup+ mq+ droped);
         }
     }
 

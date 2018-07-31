@@ -25,18 +25,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RemotingCommand {
     public static final String SERIALIZE_TYPE_PROPERTY = "rocketmq.serialize.type";
     public static final String SERIALIZE_TYPE_ENV = "ROCKETMQ_SERIALIZE_TYPE";
     public static final String REMOTING_VERSION_KEY = "rocketmq.remoting.version";
-    private static final Logger log = LogManager.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
+    private static final Logger logger = LoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
     private static final int RPC_TYPE = 0; // 0, REQUEST_COMMAND
     private static final int RPC_ONEWAY = 1; // 0, RPC
     private static final Map<Class<? extends CommandCustomHeader>, Field[]> CLASS_HASH_MAP =
@@ -280,7 +280,7 @@ public class RemotingCommand {
                             field.set(objectHeader, valueParsed);
 
                         } catch (Throwable e) {
-                            log.error("Failed field [{}] decoding"+ fieldName, e);
+                            logger.error("Failed field [{}] decoding"+ fieldName, e);
                         }
                     }
                 }
@@ -385,7 +385,7 @@ public class RemotingCommand {
                             field.setAccessible(true);
                             value = field.get(this.customHeader);
                         } catch (Exception e) {
-                            log.error("Failed to access field [{}]"+ name, e);
+                            logger.error("Failed to access field [{}]"+ name, e);
                         }
 
                         if (value != null) {

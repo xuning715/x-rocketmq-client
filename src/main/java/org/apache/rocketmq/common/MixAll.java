@@ -39,14 +39,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.common.annotation.ImportantField;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.common.help.FAQUrl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MixAll {
-    private static final Logger log = LogManager.getLogger(LoggerName.COMMON_LOGGER_NAME);
+    private static final Logger logger = LoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
     public static final String ROCKETMQ_HOME_ENV = "ROCKETMQ_HOME";
     public static final String ROCKETMQ_HOME_PROPERTY = "rocketmq.home.dir";
@@ -247,7 +247,7 @@ public class MixAll {
                             value = "";
                         }
                     } catch (IllegalAccessException e) {
-                        log.error("Failed to obtain object properties", e);
+                        logger.error("Failed to obtain object properties", e);
                     }
 
                     if (onlyImportantField) {
@@ -282,7 +282,7 @@ public class MixAll {
             InputStream in = new ByteArrayInputStream(str.getBytes(DEFAULT_CHARSET));
             properties.load(in);
         } catch (Exception e) {
-            log.error("Failed to handle properties", e);
+            logger.error("Failed to handle properties", e);
             return null;
         }
 
@@ -302,7 +302,7 @@ public class MixAll {
                         field.setAccessible(true);
                         value = field.get(object);
                     } catch (IllegalAccessException e) {
-                        log.error("Failed to handle properties", e);
+                        logger.error("Failed to handle properties", e);
                     }
 
                     if (value != null) {

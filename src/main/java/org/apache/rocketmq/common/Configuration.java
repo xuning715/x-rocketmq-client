@@ -17,7 +17,8 @@
 
 package org.apache.rocketmq.common;
 
-import org.apache.log4j.Logger;
+
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Field;

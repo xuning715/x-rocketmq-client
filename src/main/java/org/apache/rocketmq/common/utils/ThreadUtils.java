@@ -26,12 +26,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.common.constant.LoggerName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ThreadUtils {
-    private static final Logger log = LogManager.getLogger(LoggerName.TOOLS_LOGGER_NAME);
+    private static final Logger logger = LoggerFactory.getLogger(LoggerName.TOOLS_LOGGER_NAME);
 
     public static ExecutorService newThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime,
         TimeUnit unit, BlockingQueue<Runnable> workQueue, String processName, boolean isDaemon) {
@@ -103,7 +103,7 @@ public final class ThreadUtils {
         thread.setDaemon(daemon);
         thread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(Thread t, Throwable e) {
-                log.error("Uncaught exception in thread '" + t.getName() + "':", e);
+                logger.error("Uncaught exception in thread '" + t.getName() + "':", e);
             }
         });
         return thread;
@@ -154,7 +154,7 @@ public final class ThreadUtils {
                 executor.shutdownNow();
                 // Wait a while for tasks to respond to being cancelled.
                 if (!executor.awaitTermination(timeout, timeUnit)) {
-                    log.warn(String.format("%s didn't terminate!", executor));
+                    logger.warn(String.format("%s didn't terminate!", executor));
                 }
             }
         } catch (InterruptedException ie) {

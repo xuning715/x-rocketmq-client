@@ -16,9 +16,10 @@
  */
 package org.apache.rocketmq.client.log;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.common.constant.LoggerName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Method;
 import java.net.URL;
 
@@ -26,7 +27,7 @@ public class ClientLogger {
     public static final String CLIENT_LOG_ROOT = "rocketmq.client.logRoot";
     public static final String CLIENT_LOG_MAXINDEX = "rocketmq.client.logFileMaxIndex";
     public static final String CLIENT_LOG_LEVEL = "rocketmq.client.logLevel";
-    public static Logger log = LogManager.getRootLogger();
+    public static Logger logger = LoggerFactory.getLogger(ClientLogger.class);
 
 //    private static Logger log;
 

@@ -24,8 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.impl.FindBrokerResult;
@@ -37,12 +35,14 @@ import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.header.QueryConsumerOffsetRequestHeader;
 import org.apache.rocketmq.common.protocol.header.UpdateConsumerOffsetRequestHeader;
 import org.apache.rocketmq.remoting.exception.RemotingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Remote storage implementation
  */
 public class RemoteBrokerOffsetStore implements OffsetStore {
-    private static Logger log = LogManager.getLogger(RemoteBrokerOffsetStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(RemoteBrokerOffsetStore.class);
     private final MQClientInstance mQClientFactory;
     private final String groupName;
     private ConcurrentMap<MessageQueue, AtomicLong> offsetTable =
@@ -101,7 +101,7 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
                     }
                     //Other exceptions
                     catch (Exception e) {
-                        log.warn("fetchConsumeOffsetFromBroker exception, " + mq, e);
+                        logger.warn("fetchConsumeOffsetFromBroker exception, " + mq, e);
                         return -2;
                     }
                 }
@@ -127,13 +127,13 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
                     if (mqs.contains(mq)) {
                         try {
                             this.updateConsumeOffsetToBroker(mq, offset.get());
-                            log.info("[persistAll] Group: {} ClientId: {} updateConsumeOffsetToBroker {} {}"+
+                            logger.info("[persistAll] Group: {} ClientId: {} updateConsumeOffsetToBroker {} {}"+
                                 this.groupName+
                                 this.mQClientFactory.getClientId()+
                                 mq+
                                 offset.get());
                         } catch (Exception e) {
-                            log.error("updateConsumeOffsetToBroker exception, " + mq.toString(), e);
+                            logger.error("updateConsumeOffsetToBroker exception, " + mq.toString(), e);
                         }
                     } else {
                         unusedMQ.add(mq);
@@ -145,7 +145,7 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
         if (!unusedMQ.isEmpty()) {
             for (MessageQueue mq : unusedMQ) {
                 this.offsetTable.remove(mq);
-                log.info("remove unused mq, {}, {}"+ mq+ this.groupName);
+                logger.info("remove unused mq, {}, {}"+ mq+ this.groupName);
             }
         }
     }
@@ -156,13 +156,13 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
         if (offset != null) {
             try {
                 this.updateConsumeOffsetToBroker(mq, offset.get());
-                log.info("[persist] Group: {} ClientId: {} updateConsumeOffsetToBroker {} {}"+
+                logger.info("[persist] Group: {} ClientId: {} updateConsumeOffsetToBroker {} {}"+
                     this.groupName+
                     this.mQClientFactory.getClientId()+
                     mq+
                     offset.get());
             } catch (Exception e) {
-                log.error("updateConsumeOffsetToBroker exception, " + mq.toString(), e);
+                logger.error("updateConsumeOffsetToBroker exception, " + mq.toString(), e);
             }
         }
     }
@@ -170,7 +170,7 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
     public void removeOffset(MessageQueue mq) {
         if (mq != null) {
             this.offsetTable.remove(mq);
-            log.info("remove unnecessary messageQueue offset. group={}, mq={}, offsetTableSize={}"+ this.groupName+ mq+
+            logger.info("remove unnecessary messageQueue offset. group={}, mq={}, offsetTableSize={}"+ this.groupName+ mq+
                 offsetTable.size());
         }
     }

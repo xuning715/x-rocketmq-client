@@ -22,15 +22,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.common.ServiceThread;
 import org.apache.rocketmq.common.utils.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PullMessageService extends ServiceThread {
-    private static Logger log = LogManager.getLogger(PullMessageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PullMessageService.class);
     private final LinkedBlockingQueue<PullRequest> pullRequestQueue = new LinkedBlockingQueue<PullRequest>();
     private final MQClientInstance mQClientFactory;
     private final ScheduledExecutorService scheduledExecutorService = Executors
@@ -59,7 +59,7 @@ public class PullMessageService extends ServiceThread {
         try {
             this.pullRequestQueue.put(pullRequest);
         } catch (InterruptedException e) {
-            log.error("executePullRequestImmediately pullRequestQueue.put", e);
+            logger.error("executePullRequestImmediately pullRequestQueue.put", e);
         }
     }
 
@@ -77,13 +77,13 @@ public class PullMessageService extends ServiceThread {
             DefaultMQPushConsumerImpl impl = (DefaultMQPushConsumerImpl) consumer;
             impl.pullMessage(pullRequest);
         } else {
-            log.warn("No matched consumer for the PullRequest {}, drop it"+ pullRequest);
+            logger.warn("No matched consumer for the PullRequest {}, drop it"+ pullRequest);
         }
     }
 
     @Override
     public void run() {
-        log.info(this.getServiceName() + " service started");
+        logger.info(this.getServiceName() + " service started");
 
         while (!this.isStopped()) {
             try {
@@ -93,11 +93,11 @@ public class PullMessageService extends ServiceThread {
                 }
             } catch (InterruptedException e) {
             } catch (Exception e) {
-                log.error("Pull Message Service Run Method exception", e);
+                logger.error("Pull Message Service Run Method exception", e);
             }
         }
 
-        log.info(this.getServiceName() + " service end");
+        logger.info(this.getServiceName() + " service end");
     }
 
     @Override

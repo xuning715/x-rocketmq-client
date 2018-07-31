@@ -19,12 +19,12 @@ package org.apache.rocketmq.client;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.consumer.DefaultMQPullConsumer;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MQHelper {
     public static void resetOffsetByTimestamp(
@@ -50,7 +50,7 @@ public class MQHelper {
         final String consumerGroup,
         final String topic,
         final long timestamp) throws Exception {
-        final Logger log = LogManager.getLogger(MQHelper.class);
+        final Logger logger = LoggerFactory.getLogger(MQHelper.class);
 
         DefaultMQPullConsumer consumer = new DefaultMQPullConsumer(consumerGroup);
         consumer.setInstanceName(instanceName);
@@ -66,13 +66,13 @@ public class MQHelper {
                     long offset = consumer.searchOffset(mq, timestamp);
                     if (offset >= 0) {
                         consumer.updateConsumeOffset(mq, offset);
-                        log.info("resetOffsetByTimestamp updateConsumeOffset success, {} {} {}" +
+                        logger.info("resetOffsetByTimestamp updateConsumeOffset success, {} {} {}" +
                             consumerGroup + offset + mq);
                     }
                 }
             }
         } catch (Exception e) {
-            log.warn("resetOffsetByTimestamp Exception", e);
+            logger.warn("resetOffsetByTimestamp Exception", e);
             throw e;
         } finally {
             if (mqs != null) {

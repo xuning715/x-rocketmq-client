@@ -25,8 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;
@@ -36,6 +34,8 @@ import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.help.FAQUrl;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.remoting.exception.RemotingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Local storage implementation
@@ -44,7 +44,7 @@ public class LocalFileOffsetStore implements OffsetStore {
     public final static String LOCAL_OFFSET_STORE_DIR = System.getProperty(
         "rocketmq.client.localOffsetStoreDir",
         System.getProperty("user.home") + File.separator + ".rocketmq_offsets");
-    private static Logger log = LogManager.getLogger(LocalFileOffsetStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(LocalFileOffsetStore.class);
     private final MQClientInstance mQClientFactory;
     private final String groupName;
     private final String storePath;
@@ -68,7 +68,7 @@ public class LocalFileOffsetStore implements OffsetStore {
 
             for (MessageQueue mq : offsetSerializeWrapper.getOffsetTable().keySet()) {
                 AtomicLong offset = offsetSerializeWrapper.getOffsetTable().get(mq);
-                log.info("load consumer's offset, {} {} {}"+
+                logger.info("load consumer's offset, {} {} {}"+
                     this.groupName+
                     mq+
                     offset.get());
@@ -148,7 +148,7 @@ public class LocalFileOffsetStore implements OffsetStore {
             try {
                 MixAll.string2File(jsonString, this.storePath);
             } catch (IOException e) {
-                log.error("persistAll consumer offset Exception, " + this.storePath, e);
+                logger.error("persistAll consumer offset Exception, " + this.storePath, e);
             }
         }
     }
@@ -187,7 +187,7 @@ public class LocalFileOffsetStore implements OffsetStore {
         try {
             content = MixAll.file2String(this.storePath);
         } catch (IOException e) {
-            log.warn("Load local offset store file exception", e);
+            logger.warn("Load local offset store file exception", e);
         }
         if (null == content || content.length() == 0) {
             return this.readLocalOffsetBak();
@@ -197,7 +197,7 @@ public class LocalFileOffsetStore implements OffsetStore {
                 offsetSerializeWrapper =
                     OffsetSerializeWrapper.fromJson(content, OffsetSerializeWrapper.class);
             } catch (Exception e) {
-                log.warn("readLocalOffset Exception, and try to correct", e);
+                logger.warn("readLocalOffset Exception, and try to correct", e);
                 return this.readLocalOffsetBak();
             }
 
@@ -210,7 +210,7 @@ public class LocalFileOffsetStore implements OffsetStore {
         try {
             content = MixAll.file2String(this.storePath + ".bak");
         } catch (IOException e) {
-            log.warn("Load local offset store bak file exception", e);
+            logger.warn("Load local offset store bak file exception", e);
         }
         if (content != null && content.length() > 0) {
             OffsetSerializeWrapper offsetSerializeWrapper = null;
@@ -218,7 +218,7 @@ public class LocalFileOffsetStore implements OffsetStore {
                 offsetSerializeWrapper =
                     OffsetSerializeWrapper.fromJson(content, OffsetSerializeWrapper.class);
             } catch (Exception e) {
-                log.warn("readLocalOffset Exception", e);
+                logger.warn("readLocalOffset Exception", e);
                 throw new MQClientException("readLocalOffset Exception, maybe fastjson version too low"
                     + FAQUrl.suggestTodo(FAQUrl.LOAD_JSON_EXCEPTION),
                     e);

@@ -19,17 +19,17 @@ package org.apache.rocketmq.client.consumer.rebalance;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.consumer.AllocateMessageQueueStrategy;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.common.message.MessageQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Average Hashing queue algorithm
  */
 public class AllocateMessageQueueAveragely implements AllocateMessageQueueStrategy {
-    private static Logger log = LogManager.getLogger(AllocateMessageQueueAveragely.class);
+    private static final Logger logger = LoggerFactory.getLogger(AllocateMessageQueueAveragely.class);
     @Override
     public List<MessageQueue> allocate(String consumerGroup, String currentCID, List<MessageQueue> mqAll,
         List<String> cidAll) {
@@ -45,7 +45,7 @@ public class AllocateMessageQueueAveragely implements AllocateMessageQueueStrate
 
         List<MessageQueue> result = new ArrayList<MessageQueue>();
         if (!cidAll.contains(currentCID)) {
-            log.info("[BUG] ConsumerGroup: {} The consumerId: {} not in cidAll: {}" +
+            logger.info("[BUG] ConsumerGroup: {} The consumerId: {} not in cidAll: {}" +
                 consumerGroup+
                 currentCID+
                 cidAll);

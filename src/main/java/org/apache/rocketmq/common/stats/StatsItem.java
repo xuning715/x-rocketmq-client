@@ -22,8 +22,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.common.UtilAll;
+import org.slf4j.Logger;
 
 public class StatsItem {
 

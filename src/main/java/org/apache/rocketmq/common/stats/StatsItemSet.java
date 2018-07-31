@@ -24,8 +24,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.common.UtilAll;
+import org.slf4j.Logger;
 
 public class StatsItemSet {
     private final ConcurrentMap<String/* key */, StatsItem> statsItemTable =
@@ -33,12 +33,12 @@ public class StatsItemSet {
 
     private final String statsName;
     private final ScheduledExecutorService scheduledExecutorService;
-    private final Logger log;
+    private final Logger logger;
 
-    public StatsItemSet(String statsName, ScheduledExecutorService scheduledExecutorService, Logger log) {
+    public StatsItemSet(String statsName, ScheduledExecutorService scheduledExecutorService, Logger logger) {
         this.statsName = statsName;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.log = log;
+        this.logger = logger;
         this.init();
     }
 
@@ -162,7 +162,7 @@ public class StatsItemSet {
     public StatsItem getAndCreateStatsItem(final String statsKey) {
         StatsItem statsItem = this.statsItemTable.get(statsKey);
         if (null == statsItem) {
-            statsItem = new StatsItem(this.statsName, statsKey, this.scheduledExecutorService, this.log);
+            statsItem = new StatsItem(this.statsName, statsKey, this.scheduledExecutorService, this.logger);
             StatsItem prev = this.statsItemTable.put(statsKey, statsItem);
 
             if (null == prev) {

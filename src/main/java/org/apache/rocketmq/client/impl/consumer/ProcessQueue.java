@@ -27,14 +27,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.common.message.MessageAccessor;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.protocol.body.ProcessQueueInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Queue consumption snapshot
@@ -44,7 +43,7 @@ public class ProcessQueue {
         Long.parseLong(System.getProperty("rocketmq.client.rebalance.lockMaxLiveTime", "30000"));
     public final static long REBALANCE_LOCK_INTERVAL = Long.parseLong(System.getProperty("rocketmq.client.rebalance.lockInterval", "20000"));
     private final static long PULL_MAX_IDLE_TIME = Long.parseLong(System.getProperty("rocketmq.client.pull.pullMaxIdleTime", "120000"));
-    private static Logger log = LogManager.getLogger(ProcessQueue.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProcessQueue.class);
     private final ReadWriteLock lockTreeMap = new ReentrantReadWriteLock();
     private final TreeMap<Long, MessageExt> msgTreeMap = new TreeMap<Long, MessageExt>();
     private final AtomicLong msgCount = new AtomicLong();
@@ -96,13 +95,13 @@ public class ProcessQueue {
                     this.lockTreeMap.readLock().unlock();
                 }
             } catch (InterruptedException e) {
-                log.error("getExpiredMsg exception", e);
+                logger.error("getExpiredMsg exception", e);
             }
 
             try {
 
                 pushConsumer.sendMessageBack(msg, 3);
-                log.info("send expire msg back. topic={}, msgId={}, storeHost={}, queueId={}, queueOffset={}"+ msg.getTopic()+ msg.getMsgId()+ msg.getStoreHost()+ msg.getQueueId()+ msg.getQueueOffset());
+                logger.info("send expire msg back. topic={}, msgId={}, storeHost={}, queueId={}, queueOffset={}"+ msg.getTopic()+ msg.getMsgId()+ msg.getStoreHost()+ msg.getQueueId()+ msg.getQueueOffset());
                 try {
                     this.lockTreeMap.writeLock().lockInterruptibly();
                     try {
@@ -110,17 +109,17 @@ public class ProcessQueue {
                             try {
                                 removeMessage(Collections.singletonList(msg));
                             } catch (Exception e) {
-                                log.error("send expired msg exception", e);
+                                logger.error("send expired msg exception", e);
                             }
                         }
                     } finally {
                         this.lockTreeMap.writeLock().unlock();
                     }
                 } catch (InterruptedException e) {
-                    log.error("getExpiredMsg exception", e);
+                    logger.error("getExpiredMsg exception", e);
                 }
             } catch (Exception e) {
-                log.error("send expired msg exception", e);
+                logger.error("send expired msg exception", e);
             }
         }
     }
@@ -160,7 +159,7 @@ public class ProcessQueue {
                 this.lockTreeMap.writeLock().unlock();
             }
         } catch (InterruptedException e) {
-            log.error("putMessage exception", e);
+            logger.error("putMessage exception", e);
         }
 
         return dispatchToConsume;
@@ -177,7 +176,7 @@ public class ProcessQueue {
                 this.lockTreeMap.readLock().unlock();
             }
         } catch (InterruptedException e) {
-            log.error("getMaxSpan exception", e);
+            logger.error("getMaxSpan exception", e);
         }
 
         return 0;
@@ -210,7 +209,7 @@ public class ProcessQueue {
                 this.lockTreeMap.writeLock().unlock();
             }
         } catch (Throwable t) {
-            log.error("removeMessage exception", t);
+            logger.error("removeMessage exception", t);
         }
 
         return result;
@@ -254,7 +253,7 @@ public class ProcessQueue {
                 this.lockTreeMap.writeLock().unlock();
             }
         } catch (InterruptedException e) {
-            log.error("rollback exception", e);
+            logger.error("rollback exception", e);
         }
     }
 
@@ -275,7 +274,7 @@ public class ProcessQueue {
                 this.lockTreeMap.writeLock().unlock();
             }
         } catch (InterruptedException e) {
-            log.error("commit exception", e);
+            logger.error("commit exception", e);
         }
 
         return -1;
@@ -293,7 +292,7 @@ public class ProcessQueue {
                 this.lockTreeMap.writeLock().unlock();
             }
         } catch (InterruptedException e) {
-            log.error("makeMessageToCosumeAgain exception", e);
+            logger.error("makeMessageToCosumeAgain exception", e);
         }
     }
 
@@ -323,7 +322,7 @@ public class ProcessQueue {
                 this.lockTreeMap.writeLock().unlock();
             }
         } catch (InterruptedException e) {
-            log.error("take Messages exception", e);
+            logger.error("take Messages exception", e);
         }
 
         return result;
@@ -356,7 +355,7 @@ public class ProcessQueue {
                 this.lockTreeMap.writeLock().unlock();
             }
         } catch (InterruptedException e) {
-            log.error("rollback exception", e);
+            logger.error("rollback exception", e);
         }
     }
 

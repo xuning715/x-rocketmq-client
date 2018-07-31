@@ -24,8 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.consumer.PullCallback;
 import org.apache.rocketmq.client.consumer.PullResult;
 import org.apache.rocketmq.client.consumer.PullStatus;
@@ -50,9 +48,11 @@ import org.apache.rocketmq.common.protocol.heartbeat.SubscriptionData;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 import org.apache.rocketmq.common.sysflag.PullSysFlag;
 import org.apache.rocketmq.remoting.exception.RemotingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PullAPIWrapper {
-    private static Logger log = LogManager.getLogger(PullAPIWrapper.class);
+    private static final Logger logger = LoggerFactory.getLogger(PullAPIWrapper.class);
     private final MQClientInstance mQClientFactory;
     private final String consumerGroup;
     private final boolean unitMode;
@@ -131,7 +131,7 @@ public class PullAPIWrapper {
                 try {
                     hook.filterMessage(context);
                 } catch (Throwable e) {
-                    log.error("execute hook error. hookName={}"+ hook.hookName());
+                    logger.error("execute hook error. hookName={}"+ hook.hookName());
                 }
             }
         }

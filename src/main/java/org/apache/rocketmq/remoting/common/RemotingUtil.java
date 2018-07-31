@@ -19,8 +19,8 @@ package org.apache.rocketmq.remoting.common;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -38,7 +38,7 @@ import java.util.Enumeration;
 public class RemotingUtil {
     public static final String OS_NAME = System.getProperty("os.name");
 
-    private static final Logger log = LogManager.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
+    private static final Logger logger = LoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
     private static boolean isLinuxPlatform = false;
     private static boolean isWindowsPlatform = false;
 
@@ -72,7 +72,7 @@ public class RemotingUtil {
                             }
                         }
                     } catch (final Exception e) {
-                        log.warn("Open ePoll Selector for linux platform exception", e);
+                        logger.warn("Open ePoll Selector for linux platform exception", e);
                     }
                 }
             } catch (final Exception e) {
@@ -130,7 +130,7 @@ public class RemotingUtil {
             final InetAddress localHost = InetAddress.getLocalHost();
             return normalizeHostAddress(localHost);
         } catch (Exception e) {
-            log.error("Failed to obtain local address", e);
+            logger.error("Failed to obtain local address", e);
         }
 
         return null;
@@ -193,7 +193,7 @@ public class RemotingUtil {
         channel.close().addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                log.info("closeChannel: close the connection to remote address[{}] result: {}"+ addrRemote+
+                logger.info("closeChannel: close the connection to remote address[{}] result: {}"+ addrRemote+
                     future.isSuccess());
             }
         });

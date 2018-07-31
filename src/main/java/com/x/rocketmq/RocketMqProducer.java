@@ -5,11 +5,11 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.common.message.Message;
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RocketMqProducer extends DefaultMQProducer {
-    private static final Logger logger = LogManager.getLogger(RocketMqProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(RocketMqProducer.class);
     public final static String UTF8 ="UTF-8";
     public final static String PRODUCE_EXCEPTION ="RocketMq produce message excepton : ";
 

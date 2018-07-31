@@ -21,14 +21,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import java.nio.ByteBuffer;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NettyEncoder extends MessageToByteEncoder<RemotingCommand> {
-    private static final Logger log = LogManager.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
+    private static final Logger logger = LoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
 
     @Override
     public void encode(ChannelHandlerContext ctx, RemotingCommand remotingCommand, ByteBuf out)
@@ -41,9 +41,9 @@ public class NettyEncoder extends MessageToByteEncoder<RemotingCommand> {
                 out.writeBytes(body);
             }
         } catch (Exception e) {
-            log.error("encode exception, " + RemotingHelper.parseChannelRemoteAddr(ctx.channel()), e);
+            logger.error("encode exception, " + RemotingHelper.parseChannelRemoteAddr(ctx.channel()), e);
             if (remotingCommand != null) {
-                log.error(remotingCommand.toString());
+                logger.error(remotingCommand.toString());
             }
             RemotingUtil.closeChannel(ctx.channel());
         }

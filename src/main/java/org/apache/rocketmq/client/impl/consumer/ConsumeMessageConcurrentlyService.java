@@ -30,15 +30,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.ConsumeReturnType;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.hook.ConsumeMessageContext;
-import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.client.stat.ConsumerStatsManager;
 import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.ThreadFactoryImpl;
@@ -49,9 +46,11 @@ import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.body.CMResult;
 import org.apache.rocketmq.common.protocol.body.ConsumeMessageDirectlyResult;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConsumeMessageConcurrentlyService implements ConsumeMessageService {
-    private static Logger log = LogManager.getLogger(ConsumeMessageConcurrentlyService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConsumeMessageConcurrentlyService.class);
     private final DefaultMQPushConsumerImpl defaultMQPushConsumerImpl;
     private final DefaultMQPushConsumer defaultMQPushConsumer;
     private final MessageListenerConcurrently messageListener;
@@ -163,7 +162,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
 
         final long beginTime = System.currentTimeMillis();
 
-        log.info("consumeMessageDirectly receive new message: {}"+ msg);
+        logger.info("consumeMessageDirectly receive new message: {}"+ msg);
 
         try {
             ConsumeConcurrentlyStatus status = this.messageListener.consumeMessage(msgs, context);
@@ -185,7 +184,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
             result.setConsumeResult(CMResult.CR_THROW_EXCEPTION);
             result.setRemark(RemotingHelper.exceptionSimpleDesc(e));
 
-            log.warn(String.format("consumeMessageDirectly exception: %s Group: %s Msgs: %s MQ: %s",
+            logger.warn(String.format("consumeMessageDirectly exception: %s Group: %s Msgs: %s MQ: %s",
                 RemotingHelper.exceptionSimpleDesc(e),
                 ConsumeMessageConcurrentlyService.this.consumerGroup,
                 msgs,
@@ -194,7 +193,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
 
         result.setSpentTimeMills(System.currentTimeMillis() - beginTime);
 
-        log.info("consumeMessageDirectly Result: {}"+ result);
+        logger.info("consumeMessageDirectly Result: {}"+ result);
 
         return result;
     }
@@ -291,7 +290,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
             case BROADCASTING:
                 for (int i = ackIndex + 1; i < consumeRequest.getMsgs().size(); i++) {
                     MessageExt msg = consumeRequest.getMsgs().get(i);
-                    log.warn("BROADCASTING, the message consume failed, drop it, {}"+ msg.toString());
+                    logger.warn("BROADCASTING, the message consume failed, drop it, {}"+ msg.toString());
                 }
                 break;
             case CLUSTERING:
@@ -332,7 +331,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
             this.defaultMQPushConsumerImpl.sendMessageBack(msg, delayLevel, context.getMessageQueue().getBrokerName());
             return true;
         } catch (Exception e) {
-            log.error("sendMessageBack exception, group: " + this.consumerGroup + " msg: " + msg.toString(), e);
+            logger.error("sendMessageBack exception, group: " + this.consumerGroup + " msg: " + msg.toString(), e);
         }
 
         return false;
@@ -387,7 +386,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
         @Override
         public void run() {
             if (this.processQueue.isDropped()) {
-                log.info("the message queue not be able to consume, because it's dropped. group={} {}"+ ConsumeMessageConcurrentlyService.this.consumerGroup+ this.messageQueue);
+                logger.info("the message queue not be able to consume, because it's dropped. group={} {}"+ ConsumeMessageConcurrentlyService.this.consumerGroup+ this.messageQueue);
                 return;
             }
 
@@ -418,7 +417,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
                 }
                 status = listener.consumeMessage(Collections.unmodifiableList(msgs), context);
             } catch (Throwable e) {
-                log.warn("consumeMessage exception: {} Group: {} Msgs: {} MQ: {}"+
+                logger.warn("consumeMessage exception: {} Group: {} Msgs: {} MQ: {}"+
                     RemotingHelper.exceptionSimpleDesc(e)+
                     ConsumeMessageConcurrentlyService.this.consumerGroup+
                     msgs+
@@ -445,7 +444,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
             }
 
             if (null == status) {
-                log.warn("consumeMessage return null, Group: {} Msgs: {} MQ: {}"+
+                logger.warn("consumeMessage return null, Group: {} Msgs: {} MQ: {}"+
                     ConsumeMessageConcurrentlyService.this.consumerGroup+
                     msgs+
                     messageQueue);
@@ -464,7 +463,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
             if (!processQueue.isDropped()) {
                 ConsumeMessageConcurrentlyService.this.processConsumeResult(status, context, this);
             } else {
-                log.warn("processQueue is dropped without process consume result. messageQueue={}, msgs={}"+ messageQueue+ msgs);
+                logger.warn("processQueue is dropped without process consume result. messageQueue={}, msgs={}"+ messageQueue+ msgs);
             }
         }
 

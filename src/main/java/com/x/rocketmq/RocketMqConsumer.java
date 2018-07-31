@@ -1,8 +1,6 @@
 package com.x.rocketmq;
 
 import com.alibaba.fastjson.JSON;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -10,6 +8,8 @@ import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ import java.util.Map;
  * 非第一次启动，从该消费者上次消费的记录点开始消费
  */
 public class RocketMqConsumer extends DefaultMQPushConsumer {
-    private static final Logger logger = LogManager.getLogger(RocketMqConsumer.class);
+    private static final Logger logger = LoggerFactory.getLogger(RocketMqConsumer.class);
     public final static String CONSUME_EXCEPTION ="RocketMq consume message excepton : ";
     private Map<String, String> consumerTopicAndTags = new HashMap<String, String>();//    private String topAndTagsString;
     private Object service;

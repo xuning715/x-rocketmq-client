@@ -16,18 +16,18 @@
  */
 package org.apache.rocketmq.common;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.common.annotation.ImportantField;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.common.constant.PermName;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class BrokerConfig {
-    private static final Logger log = LogManager.getLogger(LoggerName.COMMON_LOGGER_NAME);
+    private static final Logger logger = LoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
     private String rocketmqHome = System.getProperty(MixAll.ROCKETMQ_HOME_PROPERTY, System.getenv(MixAll.ROCKETMQ_HOME_ENV));
     @ImportantField
@@ -201,7 +201,7 @@ public class BrokerConfig {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            log.error("Failed to obtain the host name", e);
+            logger.error("Failed to obtain the host name", e);
         }
 
         return "DEFAULT_BROKER";

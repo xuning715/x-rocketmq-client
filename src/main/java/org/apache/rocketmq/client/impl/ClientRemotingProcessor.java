@@ -21,11 +21,8 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;
 import org.apache.rocketmq.client.impl.producer.MQProducerInner;
-import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.common.message.MessageDecoder;
@@ -47,9 +44,11 @@ import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClientRemotingProcessor implements NettyRequestProcessor {
-    private static Logger log = LogManager.getLogger(ClientRemotingProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClientRemotingProcessor.class);
     private final MQClientInstance mqClientFactory;
 
     public ClientRemotingProcessor(final MQClientInstance mqClientFactory) {
@@ -99,13 +98,13 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
                     final String addr = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
                     producer.checkTransactionState(addr, messageExt, requestHeader);
                 } else {
-                    log.debug("checkTransactionState, pick producer by group[{}] failed"+ group);
+                    logger.debug("checkTransactionState, pick producer by group[{}] failed"+ group);
                 }
             } else {
-                log.warn("checkTransactionState, pick producer group failed");
+                logger.warn("checkTransactionState, pick producer group failed");
             }
         } else {
-            log.warn("checkTransactionState, decode message failed");
+            logger.warn("checkTransactionState, decode message failed");
         }
 
         return null;
@@ -116,12 +115,12 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
         try {
             final NotifyConsumerIdsChangedRequestHeader requestHeader =
                 (NotifyConsumerIdsChangedRequestHeader) request.decodeCommandCustomHeader(NotifyConsumerIdsChangedRequestHeader.class);
-            log.info("receive broker's notification[{}], the consumer group: {} changed, rebalance immediately"+
+            logger.info("receive broker's notification[{}], the consumer group: {} changed, rebalance immediately"+
                 RemotingHelper.parseChannelRemoteAddr(ctx.channel())+
                 requestHeader.getConsumerGroup());
             this.mqClientFactory.rebalanceImmediately();
         } catch (Exception e) {
-            log.error("notifyConsumerIdsChanged exception"+ RemotingHelper.exceptionSimpleDesc(e));
+            logger.error("notifyConsumerIdsChanged exception"+ RemotingHelper.exceptionSimpleDesc(e));
         }
         return null;
     }
@@ -130,7 +129,7 @@ public class ClientRemotingProcessor implements NettyRequestProcessor {
         RemotingCommand request) throws RemotingCommandException {
         final ResetOffsetRequestHeader requestHeader =
             (ResetOffsetRequestHeader) request.decodeCommandCustomHeader(ResetOffsetRequestHeader.class);
-        log.info("invoke reset offset operation from broker. brokerAddr={}, topic={}, group={}, timestamp={}"+
+        logger.info("invoke reset offset operation from broker. brokerAddr={}, topic={}, group={}, timestamp={}"+
             RemotingHelper.parseChannelRemoteAddr(ctx.channel())+ requestHeader.getTopic()+ requestHeader.getGroup()+
             requestHeader.getTimestamp());
         Map<MessageQueue, Long> offsetTable = new HashMap<MessageQueue, Long>();

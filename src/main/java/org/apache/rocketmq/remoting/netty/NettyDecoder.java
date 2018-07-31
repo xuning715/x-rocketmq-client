@@ -21,14 +21,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import java.nio.ByteBuffer;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NettyDecoder extends LengthFieldBasedFrameDecoder {
-    private static final Logger log = LogManager.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
+    private static final Logger logger = LoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
 
     private static final int FRAME_MAX_LENGTH =
         Integer.parseInt(System.getProperty("com.rocketmq.remoting.frameMaxLength", "16777216"));
@@ -50,7 +50,7 @@ public class NettyDecoder extends LengthFieldBasedFrameDecoder {
 
             return RemotingCommand.decode(byteBuffer);
         } catch (Exception e) {
-            log.error("decode exception, " + RemotingHelper.parseChannelRemoteAddr(ctx.channel()), e);
+            logger.error("decode exception, " + RemotingHelper.parseChannelRemoteAddr(ctx.channel()), e);
             RemotingUtil.closeChannel(ctx.channel());
         } finally {
             if (null != frame) {

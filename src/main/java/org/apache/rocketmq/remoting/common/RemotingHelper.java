@@ -17,12 +17,12 @@
 package org.apache.rocketmq.remoting.common;
 
 import io.netty.channel.Channel;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.apache.rocketmq.remoting.exception.RemotingConnectException;
 import org.apache.rocketmq.remoting.exception.RemotingSendRequestException;
 import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -34,7 +34,7 @@ public class RemotingHelper {
     public static final String ROCKETMQ_REMOTING = "RocketmqRemoting";
     public static final String DEFAULT_CHARSET = "UTF-8";
 
-    private static final Logger log = LogManager.getLogger(ROCKETMQ_REMOTING);
+    private static final Logger logger = LoggerFactory.getLogger(ROCKETMQ_REMOTING);
 
     public static String exceptionSimpleDesc(final Throwable e) {
         StringBuffer sb = new StringBuffer();
@@ -131,7 +131,7 @@ public class RemotingHelper {
                 byteBufferBody.flip();
                 return RemotingCommand.decode(byteBufferBody);
             } catch (IOException e) {
-                log.error("invokeSync failure", e);
+                logger.error("invokeSync failure", e);
 
                 if (sendRequestOK) {
                     throw new RemotingTimeoutException(addr, timeoutMillis);
